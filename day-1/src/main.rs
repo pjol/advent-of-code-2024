@@ -1,4 +1,4 @@
-fn main() {
+pub fn main() {
     println!("Part 1: {:?}", part1());
     println!("Part 2: {:?}", part2());
 }
@@ -6,7 +6,7 @@ fn main() {
 fn part1() -> i32 {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
-        .from_path("input-2.csv")
+        .from_path("input.csv")
         .unwrap();    let mut list1: Vec<i32> = vec![];
     let mut list2: Vec<i32> = vec![];
     let mut r = reader.records();
@@ -37,7 +37,7 @@ fn part1() -> i32 {
 fn part2() -> i32 {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
-        .from_path("input-2.csv")
+        .from_path("input.csv")
         .unwrap();
     let mut list1: Vec<i32> = vec![];
     let mut list2: Vec<i32> = vec![];
