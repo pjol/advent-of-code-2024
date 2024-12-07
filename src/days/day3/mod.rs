@@ -25,5 +25,23 @@ pub fn part1() -> i32 {
 
 
 pub fn part2() -> i32 {
-  0
+  let path =  get_input_path(3);
+  let file = fs::read_to_string(path).unwrap();
+
+  let re: Regex = Regex::new(r"mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\)").unwrap();
+  let num_re: Regex = Regex::new(r"\d{1,3}").unwrap();
+  let mut total = 0;
+
+  let matches = re.find_iter(file.as_str());
+  let mut enabled = true;
+  matches.for_each(|m| {
+    if m.as_str() == "do()" { enabled = true; return }
+    if m.as_str() == "don't()" { enabled = false; return }
+    let mut num_matches = num_re.find_iter(m.as_str());
+    let n1: i32 = num_matches.next().unwrap().as_str().parse().unwrap();
+    let n2: i32 = num_matches.next().unwrap().as_str().parse().unwrap();
+    if enabled { total += n1 * n2 }
+  });
+
+  return total
 }
