@@ -3,7 +3,7 @@ use utils::Day;
 mod days;
 mod utils;
 
-const DAYS_COMPLETED: u8 = 5;
+const DAYS_COMPLETED: u8 = 6;
 
 fn main() {
   for n in 1..DAYS_COMPLETED + 1 {

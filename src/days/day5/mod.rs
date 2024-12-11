@@ -93,9 +93,6 @@ pub fn part2() -> i32 {
           }
         }
 
-        println!("{:?}", nums);
-        println!("{:?}", new_nums);
-
         total += new_nums[(new_nums.len() - 1) / 2] as i32
       }
     }
