@@ -10,6 +10,7 @@ fn get_parts(day: u8) -> (&'static dyn Fn() -> i32, &'static dyn Fn() -> i32) {
     2 => return (&days::day2::part1, &days::day2::part2),
     3 => return (&days::day3::part1, &days::day3::part2),
     4 => return (&days::day4::part1, &days::day4::part2),
+    5 => return (&days::day5::part1, &days::day5::part2),
     _ => panic!("Day not available.")
   }
 }
