@@ -1,6 +1,73 @@
-use std::{collections::HashMap, hash::Hash, thread::current};
+use std::collections::HashMap;
 
 use crate::utils::get_input_path;
+
+struct Traverser {
+  visited: HashMap<(i32, i32), Vec<(i32, i32)>>,
+  map: Vec<Vec<char>>,
+  current_pos: (i32, i32),
+  direction: (i32, i32)
+}
+
+impl Traverser {
+  fn new(map: Vec<Vec<char>>) -> Self {
+
+    let mut current_pos: (i32, i32) = (0, 0);
+    for (x, row) in map.iter().enumerate() {
+      for (y, c) in row.iter().enumerate() {
+        if *c == '^' {
+          current_pos = (x as i32, y as i32)
+        }
+      }
+    }
+
+
+    return Traverser{
+      visited: HashMap::new(),
+      map,
+      current_pos,
+      direction: (-1, 0)
+    }
+  }
+
+  fn direction(self, direction: (i32, i32)) -> Self {
+    return Traverser{
+      visited: self.visited,
+      map: self.map,
+      direction,
+      current_pos: self.current_pos
+    }
+  }
+
+
+  fn traverse(&mut self) -> Result<HashMap<(i32, i32), Vec<(i32, i32)>>, String> {
+    loop {
+      let mut next_pos = (self.current_pos.0 + self.direction.0, self.current_pos.1 + self.direction.1);
+      if next_pos.0 < 0
+      || next_pos.0 > self.map.len() as i32 - 1
+      || next_pos.1 < 0
+      || next_pos.1 > self.map[0].len() as i32 - 1
+      {
+        self.visited.entry(self.current_pos).or_insert(Vec::new()).push(self.direction);
+        break
+      }
+
+      while self.map[next_pos.0 as usize][next_pos.1 as usize] == '#' {
+        self.direction = turn(self.direction);
+        next_pos = (self.current_pos.0 + self.direction.0, self.current_pos.1 + self.direction.1);
+      }
+
+      if self.visited.entry(self.current_pos).or_insert(Vec::new()).contains(&self.direction) {
+        return Err(String::from("in loop"))
+      }
+      self.visited.entry(self.current_pos).or_insert(Vec::new()).push(self.direction);
+
+      self.current_pos = next_pos;
+    }
+
+    return Ok(self.visited.clone())
+  }
+}
 
 
 pub fn part1() -> i32 {
@@ -9,37 +76,19 @@ pub fn part1() -> i32 {
       .has_headers(false)
       .from_path(path)
       .unwrap();
-  let mut records = reader.records();
 
-  let mut visited: HashMap<(i32, i32), bool> = HashMap::new();
+
+
+  let mut records = reader.records();
   let mut map: Vec<Vec<char>> = Vec::new();
-  let mut current_pos: (i32, i32) = (0, 0);
-  let mut direction: (i32, i32) = (-1, 0);
 
   while let Some(Ok(row)) = records.next() {
     map.push(row[0].chars().collect());
-    for (index, c) in row[0].chars().enumerate() {
-      if c == '^' {
-        current_pos = (map.len() as i32 - 1, index as i32)
-      }
-    }
   }
 
-  loop {
-    visited.insert(current_pos, true);
-    let mut next_pos = (current_pos.0 + direction.0, current_pos.1 + direction.1);
-    if next_pos.0 < 0
-      || next_pos.0 > map.len() as i32 - 1
-      || next_pos.1 < 0
-      || next_pos.1 > map[0].len() as i32 - 1 {
-        break
-      }
-    if map[next_pos.0 as usize][next_pos.1 as usize] == '#' {
-      direction = turn(direction);
-      next_pos = (current_pos.0 + direction.0, current_pos.1 + direction.1);
-    }
-    current_pos = next_pos;
-  }
+  let mut traverser = Traverser::new(map);
+  let visited = traverser.traverse().unwrap();
+
   return visited.into_keys().len() as i32
 }
 
@@ -51,67 +100,24 @@ pub fn part2() -> i32 {
       .from_path(path)
       .unwrap();
   let mut records = reader.records();
-
-  let mut visited: HashMap<(i32, i32), Vec<(i32, i32)>> = HashMap::new();
   let mut map: Vec<Vec<char>> = Vec::new();
-  let mut current_pos: (i32, i32) = (0, 0);
-  let mut direction: (i32, i32) = (-1, 0);
-  let mut total = 0;
 
   while let Some(Ok(row)) = records.next() {
     map.push(row[0].chars().collect());
-    for (index, c) in row[0].chars().enumerate() {
-      if c == '^' {
-        current_pos = (map.len() as i32 - 1, index as i32)
-      }
-    }
   }
 
-  loop {
-    visited.entry(current_pos).or_insert(Vec::new()).push(direction);
-    let mut next_pos = (current_pos.0 + direction.0, current_pos.1 + direction.1);
-    if next_pos.0 < 0
-      || next_pos.0 > map.len() as i32 - 1
-      || next_pos.1 < 0
-      || next_pos.1 > map[0].len() as i32 - 1
-    {
-        break
+  let mut traverser = Traverser::new(map.clone());
+  let visited = traverser.traverse().unwrap();
+
+  let visited_spots: Vec<(i32, i32)> = visited.into_keys().collect();
+  let mut total = 0;
+  for spot in visited_spots {
+    let mut new_map = map.clone();
+    new_map[spot.0 as usize][spot.1 as usize] = '#';
+    let mut t = Traverser::new(new_map.clone());
+    if t.traverse().is_err() {
+      total += 1
     }
-
-    if map[next_pos.0 as usize][next_pos.1 as usize] == '#' {
-      direction = turn(direction);
-      next_pos = (current_pos.0 + direction.0, current_pos.1 + direction.1);
-    } else {
-      let mut nested_visited: HashMap<(i32, i32), Vec<(i32, i32)>> = HashMap::new();
-      let mut nested_map = map.clone();
-      nested_map[next_pos.0 as usize][next_pos.1 as usize] = '#';
-      let mut nested_direction = direction.clone();
-      let mut nested_pos = current_pos.clone();
-      loop {
-        if nested_visited.entry(nested_pos).or_insert(Vec::new()).contains(&nested_direction) {
-          total += 1;
-          break
-        }
-        nested_visited.entry(nested_pos).or_insert(Vec::new()).push(nested_direction);
-        let mut nested_next = (nested_pos.0 + nested_direction.0, nested_pos.1 + nested_direction.1);
-        if nested_next.0 < 0
-          || nested_next.0 > nested_map.len() as i32 - 1
-          || nested_next.1 < 0
-          || nested_next.1 > nested_map[0].len() as i32 - 1
-        {
-            break
-        }
-
-        if nested_map[nested_next.0 as usize][nested_next.1 as usize] == '#' {
-          nested_direction = turn(nested_direction);
-          nested_next = (nested_pos.0 + nested_direction.0, nested_pos.1 + nested_direction.1);
-        }
-
-        nested_pos = nested_next;
-      }
-
-    }
-    current_pos = next_pos;
   }
   return total
 }
