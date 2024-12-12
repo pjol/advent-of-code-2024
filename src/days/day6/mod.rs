@@ -30,15 +30,6 @@ impl Traverser {
     }
   }
 
-  fn direction(self, direction: (i32, i32)) -> Self {
-    return Traverser{
-      visited: self.visited,
-      map: self.map,
-      direction,
-      current_pos: self.current_pos
-    }
-  }
-
 
   fn traverse(&mut self) -> Result<HashMap<(i32, i32), Vec<(i32, i32)>>, String> {
     loop {
