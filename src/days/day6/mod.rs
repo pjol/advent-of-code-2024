@@ -85,6 +85,10 @@ pub fn part1() -> i32 {
 
 
 pub fn part2() -> i32 {
+  let ans = std::env::var("CACHED_D6P2");
+  if ans.is_ok() {
+    return ans.unwrap().parse().unwrap()
+  }
   let path = get_input_path(6);
   let mut reader = csv::ReaderBuilder::new()
       .has_headers(false)
